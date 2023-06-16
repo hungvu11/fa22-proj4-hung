@@ -49,6 +49,8 @@ void rand_matrix(matrix *result, unsigned int seed, double low, double high) {
  */
 double get(matrix *mat, int row, int col) {
     // Task 1.1 TODO
+    int index = row * mat->cols + col;
+    return *(mat->data + index);
 }
 
 /*
@@ -57,6 +59,8 @@ double get(matrix *mat, int row, int col) {
  */
 void set(matrix *mat, int row, int col, double val) {
     // Task 1.1 TODO
+    int index = row * mat->cols + col;
+    *(mat->data + index) = val;
 }
 
 /*
@@ -79,6 +83,19 @@ int allocate_matrix(matrix **mat, int rows, int cols) {
     // 6. Set the `ref_cnt` field to 1.
     // 7. Store the address of the allocated matrix struct at the location `mat` is pointing at.
     // 8. Return 0 upon success.
+    if (rows <=0 || cols <= 0) return -1;
+    struct matrix * m = (struct matrix *) malloc(sizeof(struct matrix));
+    if (m == NULL) return -2;
+    m->data = (double *) calloc(rows * cols, sizeof(double));
+    if (m -> data == NULL) return -2;
+
+    m->cols = cols;
+    m->rows = rows;
+    m->parent = NULL;
+    m->ref_cnt = 1;
+
+    *mat = m;
+    return 0;
 }
 
 /*
@@ -92,6 +109,17 @@ void deallocate_matrix(matrix *mat) {
     // 1. If the matrix pointer `mat` is NULL, return.
     // 2. If `mat` has no parent: decrement its `ref_cnt` field by 1. If the `ref_cnt` field becomes 0, then free `mat` and its `data` field.
     // 3. Otherwise, recursively call `deallocate_matrix` on `mat`'s parent, then free `mat`.
+    if (mat == NULL) return;
+    if (mat->parent == NULL) {
+        mat->ref_cnt--;
+        if (mat->ref_cnt == 0) {
+            free(mat->data);
+            free(mat);
+        }
+    } else {
+        deallocate_matrix(mat->parent);
+        free(mat);
+    }
 }
 
 /*
