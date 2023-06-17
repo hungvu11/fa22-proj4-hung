@@ -167,7 +167,13 @@ int allocate_matrix_ref(matrix **mat, matrix *from, int offset, int rows, int co
 void fill_matrix(matrix *mat, double val) {
     // Task 1.5 TODO
     if (mat == NULL) return;
-    memset(mat->data, val, mat->cols * mat->rows * sizeof(double));
+    // memset(mat->data, val, mat->cols * mat->rows * sizeof(double));
+    int N = mat->cols * mat->rows;
+    for (int i=0; i < N / 4 * 4; i += 4) {
+        __m256d tmp = _mm256_set_pd(val, val, val, val);
+        _mm256_storeu_pd(mat->data + i, tmp);
+    }
+    for (int i=N/4*4; i<N; i++) mat->data[i] = val;
 }
 
 /*
@@ -178,10 +184,18 @@ void fill_matrix(matrix *mat, double val) {
 int abs_matrix(matrix *result, matrix *mat) {
     // Task 1.5 TODO
     if (result == NULL || mat == NULL) return -1;
-
-    for (int i=0; i<mat->cols * mat->rows; i++) {
-        if (mat->data[i] < 0) result->data[i] = -mat->data[i];
-        else result->data[i] = mat->data[i];
+    
+    int N = mat->cols * mat->rows;
+    __m256d zero = _mm256_set1_pd(0.0);
+    for (int i=0; i < N / 4 * 4; i += 4) {
+        __m256d tmp = _mm256_loadu_pd (mat->data + i);
+        __m256d nev = _mm256_sub_pd(zero, tmp);
+        __m256d abs = _mm256_max_pd(tmp, nev);
+        _mm256_storeu_pd(result->data + i, abs);
+    }
+    for (int i=N/4*4; i<N; i++) {
+        if (mat->data[i] >= 0) result->data[i] = mat->data[i];
+        else result->data[i] = -mat->data[i];
     }
     return 0;
 }
@@ -210,8 +224,14 @@ int neg_matrix(matrix *result, matrix *mat) {
 int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     // Task 1.5 TODO
     if (result == NULL || mat1 == NULL || mat2 == NULL) return -1;
-    for (int i=0; i<result->cols * result->rows; i++) 
-        result->data[i] = mat1->data[i] + mat2->data[i];
+    int N = mat1->cols * mat1->rows;
+    for (int i=0; i < N / 4 * 4; i += 4) {
+        __m256d m1 = _mm256_loadu_pd (mat1->data + i);
+        __m256d m2 = _mm256_loadu_pd (mat2->data + i);
+        __m256d sum = _mm256_add_pd(m1, m2);
+        _mm256_storeu_pd(result->data + i, sum);
+    }
+    for (int i=N/4*4; i<N; i++) result->data[i] = mat1->data[i] + mat2->data[i];
     return 0;
 }
 
@@ -225,8 +245,14 @@ int add_matrix(matrix *result, matrix *mat1, matrix *mat2) {
 int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     // Task 1.5 TODO
     if (result == NULL || mat1 == NULL || mat2 == NULL) return -1;
-    for (int i=0; i<result->cols * result->rows; i++) 
-        result->data[i] = mat1->data[i] - mat2->data[i];
+    int N = mat1->cols * mat1->rows;
+    for (int i=0; i < N / 4 * 4; i += 4) {
+        __m256d m1 = _mm256_loadu_pd (mat1->data + i);
+        __m256d m2 = _mm256_loadu_pd (mat2->data + i);
+        __m256d sub = _mm256_sub_pd(m1, m2);
+        _mm256_storeu_pd(result->data + i, sub);
+    }
+    for (int i=N/4*4; i<N; i++) result->data[i] = mat1->data[i] - mat2->data[i];
     return 0;
 }
 
@@ -240,8 +266,21 @@ int sub_matrix(matrix *result, matrix *mat1, matrix *mat2) {
 int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     // Task 1.6 TODO
     if (result == NULL || mat1 == NULL || mat2 == NULL) return -1;
+
     for (int i=0; i<mat1->rows; i++) {
-        for (int j=0; j<mat2->cols; j++) {
+        double *v1 = mat1->data + (i * mat1->cols);
+        for (int j=0; j<mat2->cols / 4 * 4; j += 4) {
+            __m256d ans = _mm256_set1_pd (0.0);         
+            for (int k=0; k<mat1->cols; k++) {
+                __m256d m1 = _mm256_set1_pd(*(v1 + k));
+                __m256d m2 = _mm256_loadu_pd(mat2->data + (k * mat2->cols + j));
+                __m256d re = _mm256_mul_pd(m1, m2);
+                ans = _mm256_add_pd(ans, re);
+            }
+            _mm256_storeu_pd(result->data + i * (mat2->cols) + j, ans);
+        }
+
+        for (int j=mat2->cols / 4 * 4; j<mat2->cols; j++) {
             double val = 0.0;
             for (int k=0; k<mat1->cols; k++) {
                 val += get(mat1, i, k) * get(mat2, k, j);
