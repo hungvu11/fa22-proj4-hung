@@ -221,16 +221,12 @@ void mul_square_test2(void) {
   matrix *result = NULL;
   matrix *mat1 = NULL;
   matrix *mat2 = NULL;
-  int N = 100;
+  const int N = 100;
   CU_ASSERT_EQUAL(allocate_matrix(&result, N, N), 0);
   CU_ASSERT_EQUAL(allocate_matrix(&mat1, N, N), 0);
   CU_ASSERT_EQUAL(allocate_matrix(&mat2, N, N), 0);
-  for (int i = 0; i < N; i++) {
-    for (int j = 0; j < N; j++) {
-      set(mat1, i, j, 1);
-      set(mat2, i, j, 1);
-    }
-  }
+  fill_matrix(mat1, 1.0);
+  fill_matrix(mat2, 1.0);
   
   mul_matrix(result, mat1, mat2);
   CU_ASSERT_EQUAL(get(result, 0, 0), N);
@@ -282,22 +278,20 @@ void mul_non_square_test(void) {
 void pow_test(void) {
   matrix *result = NULL;
   matrix *mat = NULL;
-  CU_ASSERT_EQUAL(allocate_matrix(&result, 2, 2), 0);
-  CU_ASSERT_EQUAL(allocate_matrix(&mat, 2, 2), 0);
-  set(mat, 0, 0, 1);
-  set(mat, 0, 1, 1);
-  set(mat, 1, 0, 1);
-  set(mat, 1, 1, 0);
+  const int N = 500;
+  CU_ASSERT_EQUAL(allocate_matrix(&result, N, N), 0);
+  CU_ASSERT_EQUAL(allocate_matrix(&mat, N, N), 0);
+  fill_matrix(mat, 1.0);
+  pow_matrix(result, mat, 2);
+  CU_ASSERT_EQUAL(get(result, 0, 0), N);
+  CU_ASSERT_EQUAL(get(result, 0, 1), N);
+  CU_ASSERT_EQUAL(get(result, 1, 0), N);
+  CU_ASSERT_EQUAL(get(result, 1, 1), N);
   pow_matrix(result, mat, 3);
-  CU_ASSERT_EQUAL(get(result, 0, 0), 3);
-  CU_ASSERT_EQUAL(get(result, 0, 1), 2);
-  CU_ASSERT_EQUAL(get(result, 1, 0), 2);
-  CU_ASSERT_EQUAL(get(result, 1, 1), 1);
-  pow_matrix(result, mat, 10);
-  CU_ASSERT_EQUAL(get(result, 0, 0), 89);
-  CU_ASSERT_EQUAL(get(result, 0, 1), 55);
-  CU_ASSERT_EQUAL(get(result, 1, 0), 55);
-  CU_ASSERT_EQUAL(get(result, 1, 1), 34);
+  CU_ASSERT_EQUAL(get(result, 0, 0), N*N);
+  CU_ASSERT_EQUAL(get(result, 0, 1), N*N);
+  CU_ASSERT_EQUAL(get(result, 1, 0), N*N);
+  CU_ASSERT_EQUAL(get(result, 1, 1), N*N);
   deallocate_matrix(result);
   deallocate_matrix(mat);
 }

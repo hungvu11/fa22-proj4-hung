@@ -267,6 +267,15 @@ int mul_matrix(matrix *result, matrix *mat1, matrix *mat2) {
     // Task 1.6 TODO
     if (result == NULL || mat1 == NULL || mat2 == NULL) return -1;
 
+    // for (int i=0; i<mat1->rows; i++) {
+    //     for (int j=0; j<mat2->cols; j++) {
+    //         double val = 0.0;
+    //         for (int k=0; k<mat1->cols; k++) {
+    //             val += get(mat1, i, k) * get(mat2, k, j);
+    //         }
+    //         set(result, i, j, val);
+    //     }
+    // }
     for (int i=0; i<mat1->rows; i++) {
         double *v1 = mat1->data + (i * mat1->cols);
         for (int j=0; j<mat2->cols / 4 * 4; j += 4) {
