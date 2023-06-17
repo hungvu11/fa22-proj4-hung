@@ -221,25 +221,27 @@ void mul_square_test2(void) {
   matrix *result = NULL;
   matrix *mat1 = NULL;
   matrix *mat2 = NULL;
-  CU_ASSERT_EQUAL(allocate_matrix(&result, 4, 4), 0);
-  CU_ASSERT_EQUAL(allocate_matrix(&mat1, 4, 4), 0);
-  CU_ASSERT_EQUAL(allocate_matrix(&mat2, 4, 4), 0);
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      set(mat1, i, j, i+1);
-      set(mat2, i, j, j+1);
+  int N = 100;
+  CU_ASSERT_EQUAL(allocate_matrix(&result, N, N), 0);
+  CU_ASSERT_EQUAL(allocate_matrix(&mat1, N, N), 0);
+  CU_ASSERT_EQUAL(allocate_matrix(&mat2, N, N), 0);
+  for (int i = 0; i < N; i++) {
+    for (int j = 0; j < N; j++) {
+      set(mat1, i, j, 1);
+      set(mat2, i, j, 1);
     }
   }
+  
   mul_matrix(result, mat1, mat2);
-  CU_ASSERT_EQUAL(get(result, 0, 0), 4);
-  CU_ASSERT_EQUAL(get(result, 0, 1), 8);
-  CU_ASSERT_EQUAL(get(result, 0, 2), 12);
-  CU_ASSERT_EQUAL(get(result, 1, 0), 8);
-  CU_ASSERT_EQUAL(get(result, 1, 1), 16);
-  CU_ASSERT_EQUAL(get(result, 1, 2), 24);
-  CU_ASSERT_EQUAL(get(result, 2, 0), 12);
-  CU_ASSERT_EQUAL(get(result, 2, 1), 24);
-  CU_ASSERT_EQUAL(get(result, 2, 2), 36);
+  CU_ASSERT_EQUAL(get(result, 0, 0), N);
+  CU_ASSERT_EQUAL(get(result, 0, 1), N);
+  CU_ASSERT_EQUAL(get(result, 0, 2), N);
+  CU_ASSERT_EQUAL(get(result, 1, 0), N);
+  CU_ASSERT_EQUAL(get(result, 1, 1), N);
+  CU_ASSERT_EQUAL(get(result, 1, 2), N);
+  CU_ASSERT_EQUAL(get(result, 2, 0), N);
+  CU_ASSERT_EQUAL(get(result, 2, 1), N);
+  CU_ASSERT_EQUAL(get(result, 2, 2), N);
   deallocate_matrix(result);
   deallocate_matrix(mat1);
   deallocate_matrix(mat2);
